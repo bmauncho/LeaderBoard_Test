@@ -155,51 +155,52 @@ namespace CustomLeaderBoard
         // Initializes usernames from text file
         private void InitializeUsernames () => _usernames = usernamesText.text.Split(new [] { '\n' , ',' });
 
-        // Get the tier for a given rank
-        public Tier GetTierByRank ( int rank )
-        {
-            foreach (var threshold in tierThresholds)
-            {
-                if (rank >= threshold.MinRank && rank <= threshold.MaxRank)
-                    return threshold.Tier;
-            }
-            return Tier.ROOKIE; // Default to ROOKIE if no match
-        }
+        #region
+        //// Get the tier for a given rank
+        //public Tier GetTierByRank ( int rank )
+        //{
+        //    foreach (var threshold in tierThresholds)
+        //    {
+        //        if (rank >= threshold.MinRank && rank <= threshold.MaxRank)
+        //            return threshold.Tier;
+        //    }
+        //    return Tier.ROOKIE; // Default to ROOKIE if no match
+        //}
 
-        // Add a tier dynamically (for scalability)
-        public void AddTier ( Tier tier , int minRank , int maxRank,Color color)
-        {
-            tierThresholds.Add(new TierThreshold
-            {
-                Tier = tier ,
-                MinRank = minRank ,
-                MaxRank = maxRank,
-                TierColor = color
-            });
-        }
+        //// Add a tier dynamically (for scalability)
+        //public void AddTier ( Tier tier , int minRank , int maxRank,Color color)
+        //{
+        //    tierThresholds.Add(new TierThreshold
+        //    {
+        //        Tier = tier ,
+        //        MinRank = minRank ,
+        //        MaxRank = maxRank,
+        //        TierColor = color
+        //    });
+        //}
 
-        public void InitializeTiers ()
-        {
-            int positionsPerTier = 100;
-            int currentMinRank = 1;
+        //public void InitializeTiers ()
+        //{
+        //    int positionsPerTier = 100;
+        //    int currentMinRank = 1;
 
-            foreach (Tier tier in System.Enum.GetValues(typeof(Tier)))
-            {
-                int currentMaxRank = currentMinRank + positionsPerTier - 1;
-                Color tierColor = GetColorForTier(tier);
-                AddTier(tier , currentMinRank , currentMaxRank,tierColor);
+        //    foreach (Tier tier in System.Enum.GetValues(typeof(Tier)))
+        //    {
+        //        int currentMaxRank = currentMinRank + positionsPerTier - 1;
+        //        Color tierColor = GetColorForTier(tier);
+        //        AddTier(tier , currentMinRank , currentMaxRank,tierColor);
 
-                currentMinRank = currentMaxRank + 1;
-            }
-        }
+        //        currentMinRank = currentMaxRank + 1;
+        //    }
+        //}
 
-        public Color GetColorForTier ( Tier tier )
-        {
-            // Search for the corresponding TierThreshold
-            TierThreshold threshold = tierThresholds.FirstOrDefault(t => t.Tier == tier);
+        //public Color GetColorForTier ( Tier tier )
+        //{
+        //    // Search for the corresponding TierThreshold
+        //    TierThreshold threshold = tierThresholds.FirstOrDefault(t => t.Tier == tier);
 
-            // If found, return the color; otherwise, return a default color
-            return threshold != null ? threshold.TierColor : Color.white;
-        }
+        //    // If found, return the color; otherwise, return a default color
+        //    return threshold != null ? threshold.TierColor : Color.white;
+        #endregion
     }
 }

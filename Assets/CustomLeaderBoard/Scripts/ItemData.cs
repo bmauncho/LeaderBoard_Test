@@ -8,7 +8,6 @@ namespace CustomLeaderBoard
 {
     public class ItemData : MonoBehaviour
     {
-        [SerializeField] private Tier tier;
         // Item content container
         [SerializeField] private GameObject content;
 
@@ -42,17 +41,11 @@ namespace CustomLeaderBoard
             username.text = playerInfo.Username;
         }
 
-        private void SetTier ( Tier _tier )
-        {
-            tier = _tier;
-        }
-
         // Initializes item
-        public void Initialize ( PlayerInfo playerInfo , int rank,Tier tier )
+        public void Initialize ( PlayerInfo playerInfo , int rank)
         {
             SetPlayerInfo(playerInfo);
             SetRank(rank);
-            SetTier(tier);
         }
     }
 }

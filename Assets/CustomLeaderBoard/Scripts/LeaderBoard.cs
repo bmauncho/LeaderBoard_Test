@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
 
 namespace CustomLeaderBoard
@@ -9,127 +10,111 @@ namespace CustomLeaderBoard
     public class LeaderBoard : MonoBehaviour
     {
         [SerializeField] private LeaderBoardData data;
+        // Title of popup
         [SerializeField] private TMP_Text title;
+        // Player counter animator
         [SerializeField] private PositionCounter playerRankCounter;
-        [SerializeField] private ItemData ActivePlayerItem;
+        // Player item in front of leaderboard
+        [SerializeField] private ItemData playerItem;
+        // Player item container
         [SerializeField] private GameObject playerItemContainer;
+        // All leaders
         [SerializeField] private ItemData [] allLeaders;
-        [SerializeField] private Transform TheLeaderBoard;
+        // Popup transform
+        [SerializeField] private Transform popup;
+        // Scroll view
         [SerializeField] private ScrollRect scrollView;
+        // Content rect transform
         [SerializeField] private RectTransform contentRect;
 
         public List<Color> SpecialPlayerColors = new List<Color>();
         public List<Color> NormalColors = new List<Color>();
-        private bool specialcolorspicked = false;
-        private ItemData special_item;
-
+        bool specialcolorspicked = false;
+        ItemData special_item;
+        // Resets popup state
         public void Reset ()
         {
             gameObject.SetActive(true);
-            TheLeaderBoard.localScale = Vector3.zero;
+            popup.localScale = Vector3.zero;
             scrollView.horizontalNormalizedPosition = 0.5f;
             scrollView.enabled = false;
             contentRect.anchoredPosition = Vector2.zero;
         }
-
-        private void OnTierChange ( Tier oldTier , Tier newTier , int rank )
+        // Shows up popup
+        public void Show ( int oldRankPosition , int newRankPosition , Action onComplete = null )
         {
-            Debug.Log($"Player moved from {oldTier} to {newTier} at rank {rank}");
+            var isUp = newRankPosition <= oldRankPosition;
+            var rankChangeSprite = isUp ? data.RankUpSprite : data.RankDownSprite;
+            var rankChangeColor = isUp ? data.RankUpColor : data.RankDownColor;
 
-            ShowTierChangePopup(oldTier , newTier , rank);
-        }
+            title.text = data.PopupTitle;
 
-        private void ShowTierChangePopup ( Tier oldTier , Tier newTier , int rank )
-        {
-            Debug.Log($"Tier Change Popup: {oldTier} -> {newTier} (Rank: {rank})");
-        }
-
-        // Updates rank display logic
-        private void UpdateRankDisplay ( int oldRankPosition , int newRankPosition )
-        {
-            // Determine if the rank is moving up or down
-            bool isRankUp = newRankPosition < oldRankPosition;
-            var rankChangeSprite = isRankUp ? data.RankUpSprite : data.RankDownSprite;
-            var rankChangeColor = isRankUp ? data.RankUpColor : data.RankDownColor;
-
-            // Get the updated player info
             var playerInfo = new PlayerInfo()
             {
                 Username = data.PlayerName ,
-                Country = rankChangeSprite // Use rank change sprite as a placeholder for visual feedback
+                Country = rankChangeSprite
             };
 
-            // Determine the tier for the new rank
-            var newTier = data.GetTierByRank(newRankPosition);
-            var oldTier = data.GetTierByRank(oldRankPosition);
-
-            // Highlight tier change if applicable
-            if (newTier != oldTier)
+            var index = newRankPosition < 3 ? newRankPosition - 1 : 2;
+            if (!isUp)
             {
-                Debug.Log($"Player tier changed from {oldTier} to {newTier}.");
-                // Add optional tier change animation or effect
-                ShowTierChangePopup(oldTier , newTier,newRankPosition);
+                index = allLeaders.Length - 3;
             }
 
-            // Update the active player's display
-            ActivePlayerItem.Initialize(playerInfo , newRankPosition , newTier);
-            ActivePlayerItem.SetIconColor(rankChangeColor);
+            var place = newRankPosition - index;
 
-            // Update the special item (e.g., highlighted leader)
-            int leaderIndex = Mathf.Clamp(newRankPosition - 1 , 0 , allLeaders.Length - 1);
-            var specialItem = allLeaders [leaderIndex];
-            specialItem.Initialize(playerInfo , newRankPosition , newTier);
-            specialItem.SetIconColor(rankChangeColor);
+            foreach (var leader in allLeaders)
+            {
+                leader.Initialize(LeaderboardManager.Instance.CreatePlayerInfo() , place);
+                place++;
+            }
 
-            // Update the rank counter display
+            var targetPlayerItem = special_item = allLeaders [index];
+            pick_special_colors(playerItem , allLeaders [0]);
+
+            playerItemContainer.SetActive(true);
+            playerItem.Initialize(playerInfo , oldRankPosition);
+            playerItem.SetIconColor(rankChangeColor);
+
+            targetPlayerItem.Initialize(playerInfo , newRankPosition);
+            targetPlayerItem.SetIconColor(rankChangeColor);
+            targetPlayerItem.HideContent();
+
             playerRankCounter.SetDuration(data.RankCounterAnimationDuration);
-            playerRankCounter.SetCount(newRankPosition);
-        }
-
-
-        // Displays the popup
-        public void Show ( int oldRankPosition , int newRankPosition , Action onComplete = null )
-        {
-            Reset();
-            title.text = data.PopupTitle;
-
-            UpdateRankDisplay(oldRankPosition , newRankPosition);
 
             if (data.PopupShowAnimationDuration <= 0f)
             {
-                TheLeaderBoard.localScale = Vector3.one;
+                popup.localScale = Vector3.one;
                 playerRankCounter.SetCount(newRankPosition);
                 scrollView.enabled = true;
 
-                ScrollRank(newRankPosition <= oldRankPosition , () =>
-                {
+                ScrollRank(isUp , () => {
                     playerItemContainer.SetActive(false);
-                    special_item.ShowContent();
-                    AssignSpecialColours(special_item);
+                    targetPlayerItem.ShowContent();
+                    AssignSpecialColours(targetPlayerItem);
                     onComplete?.Invoke();
                 });
                 return;
             }
 
-            TheLeaderBoard.localScale = Vector3.zero;
+            popup.localScale = Vector3.zero;
             scrollView.enabled = false;
 
-            ResizePopup(TheLeaderBoard.localScale , Vector3.one , data.PopupShowAnimationDuration , () =>
-            {
+            ResizePopup(popup.localScale , Vector3.one , data.PopupShowAnimationDuration , () => {
                 scrollView.enabled = true;
                 playerRankCounter.SetCount(newRankPosition);
 
-                ScrollRank(newRankPosition <= oldRankPosition , () =>
-                {
+                ScrollRank(isUp , () => {
                     playerItemContainer.SetActive(false);
-                    special_item.ShowContent();
-                    AssignSpecialColours(special_item);
+                    targetPlayerItem.ShowContent();
+                    AssignSpecialColours(targetPlayerItem);
                     onComplete?.Invoke();
                 });
             });
         }
 
-        private void pick_special_colors ( ItemData picked , ItemData item )
+
+        void pick_special_colors ( ItemData picked , ItemData item )
         {
             if (!specialcolorspicked)
             {
@@ -147,7 +132,8 @@ namespace CustomLeaderBoard
             }
         }
 
-        private void AssignSpecialColours ( ItemData Item_ )
+
+        void AssignSpecialColours ( ItemData Item_ )
         {
             for (int i = 0 ; i < allLeaders.Length ; i++)
             {
@@ -162,6 +148,7 @@ namespace CustomLeaderBoard
             }
         }
 
+        // Hides popup
         public void Hide ( Action onComplete = null )
         {
             if (!gameObject.activeSelf)
@@ -176,26 +163,26 @@ namespace CustomLeaderBoard
                 return;
             }
 
-            ResizePopup(TheLeaderBoard.localScale , Vector3.zero , data.PopupHideAnimationDuration , () =>
-            {
+            ResizePopup(popup.localScale , Vector3.zero , data.PopupHideAnimationDuration , () => {
                 gameObject.SetActive(false);
                 onComplete?.Invoke();
             });
         }
 
+        // Animates rank scrolling
         private void ScrollRank ( bool isUp , Action onComplete )
         {
             var scrollTo = isUp ? 1f : 0f;
 
-            Tweens.Value(this , 0.5f , scrollTo , v =>
-            {
+            Tweens.Value(this , 0.5f , scrollTo , v => {
                 scrollView.verticalNormalizedPosition = v;
             } , data.RankCounterAnimationDuration , 0f , onComplete);
         }
 
+        // Animates popup scale
         private void ResizePopup ( Vector3 original , Vector3 target , float duration , Action onComplete )
         {
-            Tweens.Value(this , 0f , 1f , v => { TheLeaderBoard.localScale = Vector3.Lerp(original , target , v); } ,
+            Tweens.Value(this , 0f , 1f , v => { popup.localScale = Vector3.Lerp(original , target , v); } ,
                 duration , 0f , onComplete);
         }
     }

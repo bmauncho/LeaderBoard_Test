@@ -16,21 +16,21 @@ namespace CustomLeaderBoard
 
             // Add a button
             LeaderboardManager LeaderboardManager_ = (LeaderboardManager)target;
-            //if (GUILayout.Button("Reset"))
-            //{
-            //    LeaderboardManager_.Reset();
-            //}
+            if (GUILayout.Button("Reset"))
+            {
+                LeaderboardManager_.Reset();
+            }
 
-            //if (GUILayout.Button("Show"))
-            //{
-            //    LeaderboardManager_.Show();
-            //}
+            if (GUILayout.Button("Show"))
+            {
+                LeaderboardManager_.Show();
+            }
 
-            //if (GUILayout.Button("Hide"))
-            //{
-            //    LeaderboardManager_.Hide();
-            //}
 
+            if (GUILayout.Button("Hide"))
+            {
+                LeaderboardManager_.Hide();
+            }
         }
     }
 }

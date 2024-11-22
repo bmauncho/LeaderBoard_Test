@@ -1,35 +1,22 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using Random = UnityEngine.Random;
 
 namespace CustomLeaderBoard
 {
     public class LeaderboardManager : MonoBehaviour
     {
-        [Header("General Settings")]
-        [SerializeField] private string defaultPlayerName = "Player";
-        [SerializeField] private float popupShowDuration = 0.5f;
-        [SerializeField] private float popupHideDuration = 0.5f;
-        [SerializeField] private float hideDelay = 5f;
-
-        [Header("Leaderboard Data")]
-        [SerializeField] private LeaderBoardData leaderboardData;
-        [SerializeField] private Transform leaderboardContainer;
-        [SerializeField] private GameObject leaderboardEntryPrefab;
-
-        [Header("Color Customization")]
-        public Color defaultColor = Color.white;
-        public List<Color> tierColors = new List<Color>();
-
-        private int currentRank;
-        private int targetRank;
-        private bool isPopupVisible = false;
-
+        public Action CloseAfterDelay;
         private static LeaderboardManager _instance;
         public static LeaderboardManager Instance => _instance;
+        private const string PlayerRankKey = "PlayerRank";
+        [SerializeField] private LeaderBoardData data;
+        private LeaderBoard leaderBoardPopup;
+        private EventSystem eventSystem;
+        private LeaderBoard leaderboard_;
 
         private void Awake ()
         {
@@ -41,99 +28,72 @@ namespace CustomLeaderBoard
             _instance = this;
         }
 
-        private void Start ()
+        public PlayerInfo CreatePlayerInfo ()
         {
-            LoadPlayerRank();
+            return data.CreatePlayerInfo();
         }
 
-        private void LoadPlayerRank ()
+        public int GetRank ()
         {
-            currentRank = PlayerPrefs.GetInt("PlayerRank" , 100); // Default rank is 100.
-            targetRank = currentRank;
+            return PlayerPrefs.GetInt
+                (PlayerRankKey , Random.Range(
+                data.MinInitialRank ,
+                data.MaxInitialRank
+                ));
         }
 
-        public void SavePlayerRank ( int rank )
+        public void Reset ()
         {
-            PlayerPrefs.SetInt("PlayerRank" , rank);
+            PlayerPrefs.SetInt(PlayerRankKey , Random.Range(
+                data.MinInitialRank ,
+                data.MaxInitialRank
+            ));
             PlayerPrefs.Save();
         }
-
-        public void ShowLeaderboard ( int newRank , Action onComplete = null )
+        // Shows rank popup with auto progress
+        public void Show ( Action onComplete = null )
         {
-            targetRank = newRank;
-
-            if (!isPopupVisible)
+            var oldRank = GetRank();
+            var newRank = oldRank - Random.Range(data.MinRankStep , data.MaxRankStep);
+            newRank = Mathf.Max(1 , newRank);
+            Show(oldRank , newRank , onComplete);
+        }
+        // Shows rank popup without auto progress
+        public void Show ( int oldRankPosition , int newRankPosition , Action onComplete = null )
+        {
+            PlayerPrefs.SetInt(PlayerRankKey , newRankPosition);
+            PlayerPrefs.Save();
+            StartCoroutine(ShowCoroutine(oldRankPosition , newRankPosition , onComplete));
+        }
+        // Hides rank popup
+        public void Hide ( Action onComplete = null )
+        {
+            if (leaderboard_ == null)
             {
-                StartCoroutine(ShowLeaderboardPopup(onComplete));
+                return;
             }
+            leaderboard_.Hide(onComplete);
         }
-
-        private IEnumerator ShowLeaderboardPopup ( Action onComplete )
+        // Shows popup
+        private IEnumerator ShowCoroutine ( int oldRankPosition , int newRankPosition , Action onComplete = null )
         {
-            isPopupVisible = true;
-            leaderboardContainer.localScale = Vector3.zero;
-            leaderboardContainer.gameObject.SetActive(true);
-
-            // Animate the popup showing
-            yield return AnimatePopup(Vector3.zero , Vector3.one , popupShowDuration);
-
-            UpdateLeaderboardUI();
-
-            if (onComplete != null)
-                onComplete.Invoke();
+            InitializeComponents();
+            leaderboard_.Reset();
+            yield return null;
+            leaderboard_.Show(oldRankPosition , newRankPosition , onComplete);
         }
-
-        public void HideLeaderboard ( Action onComplete = null )
+        // Initializes canvas and input event system
+        private void InitializeComponents ()
         {
-            if (!isPopupVisible) return;
-
-            StartCoroutine(HideLeaderboardPopup(onComplete));
-        }
-
-        private IEnumerator HideLeaderboardPopup ( Action onComplete )
-        {
-            // Animate the popup hiding
-            yield return AnimatePopup(Vector3.one , Vector3.zero , popupHideDuration);
-
-            leaderboardContainer.gameObject.SetActive(false);
-            isPopupVisible = false;
-
-            if (onComplete != null)
-                onComplete.Invoke();
-        }
-
-        private IEnumerator AnimatePopup ( Vector3 startScale , Vector3 endScale , float duration )
-        {
-            float elapsedTime = 0f;
-            while (elapsedTime < duration)
+            var es = FindObjectOfType<EventSystem>(true);
+            leaderboard_ = FindObjectOfType<LeaderBoard>(true);
+            if (leaderboard_ == null)
             {
-                leaderboardContainer.localScale = Vector3.Lerp(startScale , endScale , elapsedTime / duration);
-                elapsedTime += Time.deltaTime;
-                yield return null;
+                leaderboard_ = Instantiate(leaderBoardPopup);
             }
-            leaderboardContainer.localScale = endScale;
-        }
-
-        private void UpdateLeaderboardUI ()
-        {
-            ClearLeaderboardEntries();
-
-            // Simulate leaderboard data
-            for (int i = 1 ; i <= 10 ; i++)
+            if (es == null)
             {
-                var entry = Instantiate(leaderboardEntryPrefab , leaderboardContainer);
-                var entryText = entry.GetComponentInChildren<TMP_Text>();
-                entryText.text = $"Player {i} - Rank {i}";
-                entry.GetComponent<Image>().color = i == targetRank ? tierColors [0] : defaultColor;
-            }
-            SavePlayerRank(targetRank);
-        }
-
-        private void ClearLeaderboardEntries ()
-        {
-            foreach (Transform child in leaderboardContainer)
-            {
-                Destroy(child.gameObject);
+                Instantiate(eventSystem);
             }
         }
     }
