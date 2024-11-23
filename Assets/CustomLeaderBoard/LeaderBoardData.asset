@@ -280,7 +280,7 @@ MonoBehaviour:
   minInitialRankPosition: 1
   maxInitialRankPosition: 100
   minRankDecrement: 1
-  maxRankDecrement: 100
+  maxRankDecrement: 10
   tierThresholds:
   - Tier: 0
     MinRank: 1

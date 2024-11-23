@@ -17,6 +17,7 @@ namespace CustomLeaderBoard
         private LeaderBoard leaderBoardPopup;
         private EventSystem eventSystem;
         private LeaderBoard leaderboard_;
+        [SerializeField]private List<int> recentRandomProgressValues = new List<int>(); // To store recent random values.
 
         private void Awake ()
         {
@@ -26,6 +27,7 @@ namespace CustomLeaderBoard
                 return;
             }
             _instance = this;
+            InitializeComponents();
         }
 
         public PlayerInfo CreatePlayerInfo ()
@@ -42,7 +44,7 @@ namespace CustomLeaderBoard
                 ));
         }
 
-        public void Reset ()
+        public void ResetLeaderBoard ()
         {
             PlayerPrefs.SetInt(PlayerRankKey , Random.Range(
                 data.MinInitialRank ,
@@ -54,9 +56,12 @@ namespace CustomLeaderBoard
         public void Show ( Action onComplete = null )
         {
             var oldRank = GetRank();
-            var newRank = oldRank - Random.Range(data.MinRankStep , data.MaxRankStep);
-            newRank = Mathf.Max(1 , newRank);
-            Show(oldRank , newRank , onComplete);
+            var rankProgress = GetRandomProgress();
+            //var rankProgress = oldRank - Random.Range(data.MinRankStep , data.MaxRankStep);
+            rankProgress = Mathf.Max(1 , rankProgress);
+           
+            //rankProgress = ( 100 - rankProgress );
+            Show(oldRank , rankProgress , onComplete);
         }
         // Shows rank popup without auto progress
         public void Show ( int oldRankPosition , int newRankPosition , Action onComplete = null )
@@ -78,7 +83,7 @@ namespace CustomLeaderBoard
         private IEnumerator ShowCoroutine ( int oldRankPosition , int newRankPosition , Action onComplete = null )
         {
             InitializeComponents();
-            leaderboard_.Reset();
+            leaderboard_.Refreshleaderboard();
             yield return null;
             leaderboard_.Show(oldRankPosition , newRankPosition , onComplete);
         }
@@ -95,6 +100,30 @@ namespace CustomLeaderBoard
             {
                 Instantiate(eventSystem);
             }
+        }
+
+        
+
+        public int GetRandomProgress ()
+        {
+            int randomProgress = Random.Range(1 , 100);
+
+            // Ensure the random value is not in the recent values list.
+            while (recentRandomProgressValues.Contains(randomProgress))
+            {
+                randomProgress = Random.Range(1 , 100);
+            }
+
+            // Add the new value to the list of recent values.
+            recentRandomProgressValues.Add(randomProgress);
+
+            // Limit the size of the recent values list to avoid memory issues.
+            if (recentRandomProgressValues.Count > 4) // Arbitrary size limit; adjust as needed.
+            {
+                recentRandomProgressValues.RemoveAt(0);
+            }
+
+            return randomProgress;
         }
     }
 }

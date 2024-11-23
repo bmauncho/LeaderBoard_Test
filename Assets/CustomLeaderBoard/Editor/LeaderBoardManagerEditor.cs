@@ -18,7 +18,7 @@ namespace CustomLeaderBoard
             LeaderboardManager LeaderboardManager_ = (LeaderboardManager)target;
             if (GUILayout.Button("Reset"))
             {
-                LeaderboardManager_.Reset();
+                LeaderboardManager_.ResetLeaderBoard();
             }
 
             if (GUILayout.Button("Show"))
