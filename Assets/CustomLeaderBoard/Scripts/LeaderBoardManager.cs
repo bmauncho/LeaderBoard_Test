@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Random = UnityEngine.Random;
@@ -56,7 +57,7 @@ namespace CustomLeaderBoard
         public void Show ( Action onComplete = null )
         {
             var oldRank = GetRank();
-            var rankProgress = GetRandomProgress();
+            var rankProgress = GetRandomProgress(oldRank);
             //var rankProgress = oldRank - Random.Range(data.MinRankStep , data.MaxRankStep);
             rankProgress = Mathf.Max(1 , rankProgress);
            
@@ -102,28 +103,80 @@ namespace CustomLeaderBoard
             }
         }
 
-        
-
-        public int GetRandomProgress ()
+        public int GetRandomProgress ( int currentRank )
         {
-            int randomProgress = Random.Range(1 , 100);
+            var currentTier = data.GetTierByRank(currentRank);
 
-            // Ensure the random value is not in the recent values list.
+            // Ensure there's a valid match for the current tier
+            var tierThreshold = data.GetTierThresholds().FirstOrDefault(t => t.Tier == currentTier);
+            if (tierThreshold == null)
+                throw new InvalidOperationException("Invalid tier structure or current rank.");
+
+            // Check if at the top of the current tier
+            if (currentRank == tierThreshold.MinRank)
+            {
+                var nextTier = data.GetNextTier(currentTier);
+                if (nextTier != null)
+                {
+                    return nextTier.MaxRank; // Move to position 100 of the next tier
+                }
+            }
+
+            // Default progression logic
+            int randomProgress = Random.Range(1 , 100);
             while (recentRandomProgressValues.Contains(randomProgress))
             {
                 randomProgress = Random.Range(1 , 100);
             }
 
-            // Add the new value to the list of recent values.
+            // Update recent progress values
             recentRandomProgressValues.Add(randomProgress);
-
-            // Limit the size of the recent values list to avoid memory issues.
-            if (recentRandomProgressValues.Count > 4) // Arbitrary size limit; adjust as needed.
+            if (recentRandomProgressValues.Count > 4)
             {
                 recentRandomProgressValues.RemoveAt(0);
             }
 
-            return randomProgress;
+            return Mathf.Max(1 , currentRank - randomProgress);
+        }
+
+        public void UpdatePlayerRank ( int newRank )
+        {
+            var currentRank = GetRank();
+            var currentTier = data.GetTierByRank(currentRank);
+
+            if (newRank == 1)
+            {
+                // Rank up to the next tier
+                var nextTier = data.GetNextTier(currentTier);
+                if (nextTier != null)
+                {
+                    newRank = nextTier.MaxRank; // Move to position 100 of the next tier 
+                }
+            }
+            else if (newRank == 100)
+            {
+                // Rank down to the previous tier
+                var previousTier = GetPreviousTier(currentTier);
+                if (previousTier != null)
+                {
+                    newRank = previousTier.MinRank; // Move to position 1 of the previous tier
+                }
+            }
+
+            // Update the rank in PlayerPrefs
+            PlayerPrefs.SetInt(PlayerRankKey , newRank);
+            PlayerPrefs.Save();
+        }
+
+        private TierThreshold? GetPreviousTier ( Tier currentTier )
+        {
+            var thresholds = data.GetTierThresholds();
+            var currentIndex = thresholds.FindIndex(t => t.Tier == currentTier);
+            if (currentIndex > 0)
+            {
+                return thresholds [currentIndex - 1];
+            }
+            return null; // No previous tier
         }
     }
 }

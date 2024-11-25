@@ -24,6 +24,7 @@ namespace CustomLeaderBoard
         [SerializeField] private Transform leaderboard_;
         // Scroll view
         [SerializeField] private ScrollRect scrollView;
+        [SerializeField] private Image Banner;
         // Content rect transform
         [SerializeField] private RectTransform contentRect;
 
@@ -56,14 +57,14 @@ namespace CustomLeaderBoard
             scrollView.enabled = false;
             contentRect.anchoredPosition = Vector2.zero;
         }
-        
+
         public void Show ( int oldRankPosition , int newRankPosition , Action onComplete = null )
         {
-            var isUp = IsUp(oldRankPosition, newRankPosition);
+            var isUp = IsUp(oldRankPosition , newRankPosition);
             var rankChangeSprite = GetRankChangeSprite(isUp);
             var rankChangeColor = GetRankChangeColor(isUp);
 
-            UpdateLeaderBoardTitle ();
+            UpdateLeaderBoardTitle();
 
             var playerInfo = CreatePlayerInfo(rankChangeSprite);
 
@@ -81,6 +82,11 @@ namespace CustomLeaderBoard
                 place++;
             }
 
+            if (data.UseTierLeaderboared)
+            {
+                UpdateTierColors(newRankPosition); // Apply tier colors
+            }
+
             var targetPlayerItem = special_item = allLeaders [index];
             pick_special_colors(playerItem , allLeaders [0]);
 
@@ -96,11 +102,11 @@ namespace CustomLeaderBoard
 
             if (data.PopupShowAnimationDuration <= 0f)
             {
-                PopUpAnimation(newRankPosition,isUp,targetPlayerItem,onComplete);
+                PopUpAnimation(newRankPosition , isUp , targetPlayerItem , onComplete);
                 return;
             }
 
-            if(gameObject.activeSelf && leaderboard_.localScale == Vector3.one)
+            if (gameObject.activeSelf && leaderboard_.localScale == Vector3.one)
             {
                 PopUpAnimation(newRankPosition , isUp , targetPlayerItem , onComplete);
             }
@@ -108,8 +114,8 @@ namespace CustomLeaderBoard
             {
                 LeaderBoardAnimation(newRankPosition , isUp , targetPlayerItem , onComplete);
             }
-            
         }
+
 
         private void UpdateLeaderBoardTitle ()
         {
@@ -262,5 +268,14 @@ namespace CustomLeaderBoard
             Tweens.Value(this , 0f , 1f , v => { leaderboard_.localScale = Vector3.Lerp(original , target , v); } ,
                 duration , 0f , onComplete);
         }
+
+        private void UpdateTierColors ( int rank )
+        {
+            var tier = data.GetTierByRank(rank);
+            var tierColor = data.GetColorForTier(tier);
+
+            Banner.color = tierColor;
+        }
+
     }
 }
