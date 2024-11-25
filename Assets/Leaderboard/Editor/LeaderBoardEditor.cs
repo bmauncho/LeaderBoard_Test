@@ -46,6 +46,20 @@ namespace LeaderBoard
                 leaderBoard.HideLeaderBoard();
             }
 
+            if (leaderBoardManager != null && leaderBoardManager.CanUseTiers)
+            {
+                if (GUILayout.Button("Increase Tier"))
+                {
+                    leaderBoard.IncreaseTier();
+                }
+
+                if (GUILayout.Button("Lower Tier"))
+                {
+                    leaderBoard.LowerTier();
+                }
+            }
+           
+
             serializedObject.ApplyModifiedProperties(); // Apply changes to the serialized object
         }
     }

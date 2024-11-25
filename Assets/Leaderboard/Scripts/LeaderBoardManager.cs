@@ -66,16 +66,12 @@ namespace LeaderBoard
             _UserNames = UserNamesText.text.Split(new [] { '\n' , ',' });
         }
 
-        public void UpdateLeaderBoard ()
-        {
-
-        }
-
         public void AddTier ( Tiers tier_ , Color color )
         {
             TierInfos.Add(new TierInfo()
             {
-               TierName =tier_.ToString(),
+               TierName = tier_.ToString(),
+               tier = tier_ ,
                TierColor =color,
             });
         }
@@ -109,19 +105,28 @@ namespace LeaderBoard
 
         public Color GetColorForTier ( Tiers tier_ )
         {
+            // Log the provided tier for debugging
+            Debug.Log($"Requested tier: {tier_}");
+
             TierInfo threshold = TierInfos.FirstOrDefault(t => t.tier == tier_);
 
-            // If found, return the color; otherwise, return a default color
-            return threshold != null ? threshold.TierColor : Color.white;
+            if (threshold != null)
+            {
+                Debug.Log($"Found tier: {threshold.tier}, Color: {threshold.TierColor}");
+                return threshold.TierColor;
+            }
 
+            Debug.LogWarning($"Tier not found: {tier_}. Returning default color.");
+            return Color.white; // Default color
         }
+
 
         public List<TierInfo> GetTierThresholds ()
         {
             return TierInfos;
         }
 
-        public Color SetColorforTier ( Tiers tier )
+        public Color SetColorforTier ( Tiers tiers )
         {
             // Define hex codes for each tier
             const string ROOKIE_COLOR = "#45D9FF";
@@ -138,10 +143,10 @@ namespace LeaderBoard
             const string IMMORTAL_COLOR = "#6A2BD6";
 
             // Default color if no match
-            const string DEFAULT_COLOR = "#FFFFFF";     // White
+            const string DEFAULT_COLOR = "#45D9FF";
 
             // Switch case to assign the color
-            string hexCode = tier switch
+            string hexCode = tiers switch
             {
                 Tiers.ROOKIE => ROOKIE_COLOR,
                 Tiers.NOVICE => NOVICE_COLOR,
@@ -169,5 +174,21 @@ namespace LeaderBoard
         }
 
     }
+
+    [System.Serializable]
+    public static class ColorUtils
+    {
+        public static bool IsColorBright ( Color color )
+        {
+            // Calculate luminance based on the Rec. 709 formula
+            float luminance = 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
+
+            // Define a threshold for brightness
+            float threshold = 0.5f;
+
+            return luminance > threshold;
+        }
+    }
+
 }
 
