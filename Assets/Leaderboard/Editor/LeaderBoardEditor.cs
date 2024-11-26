@@ -46,6 +46,11 @@ namespace LeaderBoard
                 leaderBoard.HideLeaderBoard();
             }
 
+            if (GUILayout.Button("ArrangeLeaderboard"))
+            {
+                leaderBoard.ArrangeLeaderBoard();
+            }
+
             if (leaderBoardManager != null && leaderBoardManager.CanUseTiers)
             {
                 if (GUILayout.Button("Increase Tier"))

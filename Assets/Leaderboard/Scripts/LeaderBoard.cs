@@ -118,6 +118,7 @@ namespace LeaderBoard
             TheLeaderBoard.SetActive(true);
             TheLeaderBoard.transform.localScale = Vector3.one;
             SetLeaderBoardTitle();
+            StartCoroutine(InitializelocalLeaderBoard());
         }
 
         public void HideLeaderBoard ()
@@ -163,6 +164,60 @@ namespace LeaderBoard
         /// normal leaderboard / highscorelist
         /// </summary>
         /// 
+
+        public void ArrangeLeaderBoard ()
+        {
+            float entryTemplateHeight = 75f;
+            for(int i = 0;i<LeaderboardEntries.Count;i++)
+            {
+                RectTransform entryTransform = LeaderboardEntries [i].GetComponent<RectTransform>();
+                entryTransform.anchoredPosition = new Vector2(0 , -entryTemplateHeight * i);
+            }
+        }
+
+        private IEnumerator InitializelocalLeaderBoard ()
+        {
+            yield return StartCoroutine(refreshLocalLeaderBoard());
+
+            UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
+            
+            List<int> Scores = new List<int>();
+
+            for(int i = 0; i < LeaderboardEntries.Count; i++)
+            {
+                Scores.Add(GetPlayerScore());
+            }
+
+            for(int i = 0;i< Scores.Count ; i++)
+            {
+                for(int j = i+1; j < Scores.Count ; j++)
+                {
+                    if(Scores [j] > Scores [i])
+                    {
+                        int score = Scores [i];
+                        Scores [i] = Scores [j];
+                        Scores [j] = score;
+                    }
+                }
+            }
+
+            for(int i = 0;i< LeaderboardEntries.Count ; i++)
+            {
+                LeaderboardEntries[i].PositionCounter_.SetScore(Scores [i]);
+                int rank = i+1;
+                LeaderboardEntries [i].InitializePlayer(CreatePlayerInfo() , rank , LeaderboardEntries [i].PositionCounter_.Score);
+            }
+
+            playerInfo playerInfo = new playerInfo
+            {
+                UserName = data.playerName ,
+            };
+            int PlayerScore = GetPlayerScore();
+            int index = DetermineIndex(PlayerScore);
+            var targetPlayerItem = special_item = LeaderboardEntries [index];
+            targetPlayerItem.InitializePlayer(playerInfo , LeaderboardEntries [index].PositionCounter_.CurrentPosition, PlayerScore);
+            HighlightPlayer(targetPlayerItem);
+        }
 
         private int DetermineIndex (int score_)
         {
@@ -212,7 +267,34 @@ namespace LeaderBoard
             return Random.Range(5 , 100);
         }
 
-       
+        private IEnumerator refreshLocalLeaderBoard ()
+        {
+            foreach (ItemData itemData in LeaderboardEntries)
+            {
+                // Reactivate inactive entries
+                if (!itemData.gameObject.activeSelf)
+                {
+                    itemData.gameObject.SetActive(true);
+                }
+
+                // Reset the colors using the method in ItemData
+                itemData.ResetColors();
+                itemData.ResetItemData();
+            }
+
+            int playerCount = GetPlayerCount();
+            if (LeaderboardEntries.Count > playerCount)
+            {
+                // Disable children above the player count
+                for (int i = playerCount ; i < LeaderBoardContainer.transform.childCount ; i++)
+                {
+                    Transform child = LeaderBoardContainer.transform.GetChild(i);
+                    child.gameObject.SetActive(false);
+                }
+            }
+            yield return null;
+        }
+
        
         public void UpdateContentHeight ( RectTransform contentContainer , float itemHeight , float spacing , float padding )
         {
