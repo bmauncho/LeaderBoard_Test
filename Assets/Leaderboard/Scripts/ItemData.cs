@@ -13,6 +13,7 @@ namespace LeaderBoard
         public TMP_Text UserName;
         public PositionCounter PositionCounter_;
         public Image [] EditableColorsImages;
+        public Color [] EditableImages;
 
         public void SetRank(int rank )
         {
@@ -34,6 +35,21 @@ namespace LeaderBoard
             SetPlayerInfo( info );
             SetRank(rank);
             SetScore(score);
+        }
+
+        public void ResetColors ()
+        {
+            // Ensure the lengths match to avoid out-of-bounds errors
+            for (int i = 0 ; i < EditableColorsImages.Length && i < EditableImages.Length ; i++)
+            {
+                EditableColorsImages [i].color = EditableImages [i]; // Apply the default color
+            }
+        }
+
+        public void ResetItemData ()
+        {
+            SetRank(0);
+            SetScore (0);
         }
     }
 }

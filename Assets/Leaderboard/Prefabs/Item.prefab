@@ -548,9 +548,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 531210144e8923b48b2da1fef13388d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TargetPosition: 0
   CurrentPosition: 0
-  AnimationDuration: 1
   PositionLabel: {fileID: 6120723092992302580}
   Score: 5
   ScoreLabel: {fileID: 5864492781163598890}
@@ -683,6 +681,12 @@ MonoBehaviour:
   - {fileID: 8857487503463452074}
   - {fileID: 5510656524629712083}
   - {fileID: 5304211682264540221}
+  EditableImages:
+  - {r: 0.8862745, g: 0.8862745, b: 0.8862745, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0.8862745, g: 0.8862745, b: 0.8862745, a: 1}
+  - {r: 0.8862745, g: 0.8862745, b: 0.8862745, a: 1}
 --- !u!1 &5012912509923901905
 GameObject:
   m_ObjectHideFlags: 0
