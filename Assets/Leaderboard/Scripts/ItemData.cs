@@ -12,15 +12,15 @@ namespace LeaderBoard
         [SerializeField] private Image icon;
         public TMP_Text UserName;
         public PositionCounter PositionCounter_;
-        public Image [] EditableColorsImages;
-        public Color [] EditableImages;
+        public Image [] EditableImages;
+        public Color [] EditableImagesOriginalColors;
 
         public void SetRank(int rank )
         {
             PositionCounter_.SetRank(rank);
         }
 
-        public void SetScore(int score )
+        public void SetScore(float score )
         {
             PositionCounter_.SetScore(score);
         }
@@ -30,9 +30,21 @@ namespace LeaderBoard
             UserName.text = playerInfo.UserName;
         }
 
-        public void InitializePlayer(playerInfo info,int rank,int score )
+        public void SetPlayerInfo_Text(string playerOption )
+        {
+            UserName.text=playerOption;
+        }
+
+        public void InitializePlayer(playerInfo info,int rank,float score )
         {
             SetPlayerInfo( info );
+            SetRank(rank);
+            SetScore(score);
+        }
+
+        public void SetUpPlayers(string playerName,int rank,float score)
+        {
+            SetPlayerInfo_Text(playerName);
             SetRank(rank);
             SetScore(score);
         }
@@ -40,9 +52,9 @@ namespace LeaderBoard
         public void ResetColors ()
         {
             // Ensure the lengths match to avoid out-of-bounds errors
-            for (int i = 0 ; i < EditableColorsImages.Length && i < EditableImages.Length ; i++)
+            for (int i = 0 ; i < EditableImages.Length && i < EditableImagesOriginalColors.Length ; i++)
             {
-                EditableColorsImages [i].color = EditableImages [i]; // Apply the default color
+                EditableImages [i].color = EditableImagesOriginalColors [i]; // Apply the default color
             }
         }
 
@@ -50,6 +62,16 @@ namespace LeaderBoard
         {
             SetRank(0);
             SetScore (0);
+        }
+
+        public void HideContent ()
+        {
+            Content.SetActive (false);
+        }
+
+        public void ShowContent ()
+        {
+            Content.SetActive(true);
         }
     }
 }

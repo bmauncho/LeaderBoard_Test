@@ -12,7 +12,7 @@ namespace LeaderBoard
         public TMP_Text PositionLabel;
 
         [Header("Score")]
-        public int Score;
+        public float Score;
         public TMP_Text ScoreLabel;
 
         void Update ()
@@ -25,7 +25,7 @@ namespace LeaderBoard
             CurrentPosition = rank;
         }
 
-        public void SetScore ( int score )
+        public void SetScore ( float score )
         {
             Score = score;
             ScoreLabel.text = Score.ToString();

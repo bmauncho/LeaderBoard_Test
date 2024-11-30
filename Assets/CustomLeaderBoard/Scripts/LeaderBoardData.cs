@@ -171,14 +171,7 @@ namespace CustomLeaderBoard
             }
             return Tier.ROOKIE; // Default to ROOKIE if no match
         }
-
-        public TierThreshold? GetNextTier ( Tier currentTier )
-        {
-            var currentIndex = tierThresholds.FindIndex(t => t.Tier == currentTier);
-            if (currentIndex < 0 || currentIndex >= tierThresholds.Count - 1)
-                return null; // No next tier
-            return tierThresholds [currentIndex + 1];
-        }
+       
 
 
         // Add a tier dynamically (for scalability)
@@ -303,6 +296,15 @@ namespace CustomLeaderBoard
 
             // Fallback to white if parsing fails
             return Color.white;
+        }
+
+#nullable enable
+        public TierThreshold? GetNextTier ( Tier currentTier )
+        {
+            var currentIndex = tierThresholds.FindIndex(t => t.Tier == currentTier);
+            if (currentIndex < 0 || currentIndex >= tierThresholds.Count - 1)
+                return null; // No next tier
+            return tierThresholds [currentIndex + 1];
         }
 
     }

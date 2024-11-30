@@ -675,13 +675,13 @@ MonoBehaviour:
   icon: {fileID: 5510656524629712083}
   UserName: {fileID: 4498390301727499090}
   PositionCounter_: {fileID: 6255198792221988493}
-  EditableColorsImages:
+  EditableImages:
   - {fileID: 5484225170731982121}
   - {fileID: 280617269907977443}
   - {fileID: 8857487503463452074}
   - {fileID: 5510656524629712083}
   - {fileID: 5304211682264540221}
-  EditableImages:
+  EditableImagesOriginalColors:
   - {r: 0.8862745, g: 0.8862745, b: 0.8862745, a: 1}
   - {r: 1, g: 1, b: 1, a: 1}
   - {r: 1, g: 1, b: 1, a: 1}

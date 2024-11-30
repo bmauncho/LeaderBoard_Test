@@ -168,6 +168,8 @@ namespace CustomLeaderBoard
             PlayerPrefs.Save();
         }
 
+#nullable enable
+
         private TierThreshold? GetPreviousTier ( Tier currentTier )
         {
             var thresholds = data.GetTierThresholds();
@@ -178,5 +180,6 @@ namespace CustomLeaderBoard
             }
             return null; // No previous tier
         }
+
     }
 }
