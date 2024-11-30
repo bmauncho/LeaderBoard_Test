@@ -13,14 +13,11 @@ namespace LeaderBoard
     public class LeaderBoard : MonoBehaviour
     {
         LeaderBoardManager data;
-        [Header("Tier")]
-        [SerializeField]public Tiers ActiveTier;
 
         [Header("LeaderBoard")]
         public TMP_Text LeaderBoardTitle;
         public GameObject TheLeaderBoard;
         public GameObject Banner;
-        bool IsUseTiers = false;
 
         [Header("Leaderboard Content")]
         ItemData special_item;
@@ -30,23 +27,12 @@ namespace LeaderBoard
         public GameObject playerItem;
         public List<ItemData> LeaderboardEntries = new List<ItemData>();
 
-
-        
-
         // Start is called before the first frame update
         void Start ()
         {
             data = FindObjectOfType<LeaderBoardManager>(true);
         }
 
-        // Update is called once per frame
-        void Update ()
-        {
-            if(data != null)
-            {
-                IsUseTiers = data.CanUseTiers;
-            }
-        }
         #region
         /// <summary>
         /// leaderboard controller
@@ -68,52 +54,7 @@ namespace LeaderBoard
         
         public void SetLeaderBoardTitle ()
         {
-            
-            if (!IsUseTiers)
-            {
-                LeaderBoardTitle.text = "LEADERBOARD";
-                SetLeaderBoardColor(false,LeaderBoardTitle);
-            }
-            else
-            { 
-                LeaderBoardTitle.text = "WORLD RANK" + " : " + ActiveTier.ToString();
-                SetLeaderBoardColor(true, LeaderBoardTitle);
-            }
-        }
-
-        public void SetLeaderBoardColor (bool IsUseTiers,TMP_Text text)
-        {
-            const string DefaultBanner_color = "#F3F3F3";
-            const string DefaultText_color = "#282828";
-       
-            if (IsUseTiers)
-            {
-                Color newColor = Banner.GetComponent<Image>().color = data.GetColorForTier(ActiveTier);
-                if (ColorUtils.IsColorBright(newColor))
-                {
-                    if (ColorUtility.TryParseHtmlString(DefaultText_color , out Color color_))
-                    {
-                        text.color = color_;
-                    }
-                }
-                else
-                {
-                    text.color = Color.white;
-                }
-
-            }
-            else
-            {
-                if (ColorUtility.TryParseHtmlString(DefaultBanner_color , out Color color))
-                {
-                    Banner.GetComponent<Image>().color = color;
-                }
-
-                if(ColorUtility.TryParseHtmlString(DefaultText_color , out Color color_))
-                {
-                    text.color = color_;
-                }
-            }
+            LeaderBoardTitle.text = "LEADERBOARD";
         }
 
         public void ShowLeaderBoard ()
@@ -128,38 +69,6 @@ namespace LeaderBoard
         {
             TheLeaderBoard.SetActive(false);
             TheLeaderBoard.transform.localScale = Vector3.zero;
-        }
-        #endregion
-
-        #region
-        /// <summary>
-        /// Tier Leaderboard
-        /// </summary>
-        public void IncreaseTier ()
-        {
-            ActiveTier++;
-
-            Array tiersArray = System.Enum.GetValues(typeof(Tiers));
-            int enumLength = tiersArray.Length;
-
-            // Check if ActiveTier exceeds the highest tier
-            if ((int)ActiveTier >= enumLength) 
-            {
-                ActiveTier = (Tiers)( enumLength - 1 ); // Set to the last enum value
-            }
-            SetLeaderBoardTitle();
-        }
-
-        public void LowerTier ()
-        {
-            ActiveTier--;
-
-            if ((int)ActiveTier < 0) 
-            {
-                ActiveTier = (Tiers)0; 
-            }
-
-            SetLeaderBoardTitle();
         }
         #endregion
 
@@ -223,15 +132,6 @@ namespace LeaderBoard
             HighlightPlayer(targetPlayerItem);
             float TargetPos = GetNormalizedScrollPosition(targetPlayerItem.GetComponent<RectTransform>());
             yield return StartCoroutine ( ScrollToRank(TargetPos , 1f ));
-        }
-        bool IsUp ( int oldRankPosition , int newRankPosition )
-        {
-            return newRankPosition <= oldRankPosition;
-        }
-
-        public int GetOldRank ()
-        {
-            return 0;
         }
 
         private int DetermineIndex (int score_)
@@ -312,7 +212,6 @@ namespace LeaderBoard
             }
             yield return null;
         }
-
        
         public void UpdateContentHeight ( RectTransform contentContainer , float itemHeight , float spacing , float padding )
         {
@@ -355,23 +254,6 @@ namespace LeaderBoard
             OnComplete?.Invoke();
         }
 
-
-        public void ScrollUp ()
-        {
-           // StartCoroutine(ScrollToRank(1 , 1.5f));
-        }
-
-        public void ScrollDown ()
-        {
-            //StartCoroutine(ScrollToRank(0 , 1.5f));
-        }
-
-        bool IsUp ( float value )
-        {
-            // Return true if value is greater than 0.5, otherwise false
-            return value > 0.5f && value <= 1f;
-        }
-
         float GetNormalizedScrollPosition ( RectTransform target )
         {
             // Get the target position relative to the scroll content
@@ -397,25 +279,6 @@ namespace LeaderBoard
             }
             // Return the clamped normalized Y value
             return Mathf.Clamp01(normalizedY);
-        }
-
-        private IEnumerator ScaleDown (Transform target,float Dur_)
-        {
-            Vector3 targetScale = new Vector3(1f , 1f , 1f);  // Target scale of (1, 1, 1)
-            Vector3 currentScale = target.transform.localScale;
-
-            float duration = Dur_;  // Time to complete the scale transition
-            float timeElapsed = 0f;
-
-            // Gradually reduce the scale over time
-            while (timeElapsed < duration)
-            {
-                target.transform.localScale = Vector3.Lerp(currentScale , targetScale , timeElapsed / duration);
-                timeElapsed += Time.deltaTime;
-                yield return null;  // Wait until the next frame
-            }
-
-            target.transform.localScale = targetScale;  // Ensure we end at the exact target scale
         }
     }
 }

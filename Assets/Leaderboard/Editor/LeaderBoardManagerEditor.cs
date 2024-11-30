@@ -26,7 +26,7 @@ namespace LeaderBoard
                 enterChildren = false;
             }
 
-            if (leaderboardMan.CanUseTiers)
+            if (leaderboardMan.IsUsingTierLeaderBoard)
             {
                 SerializedProperty manuallySetTierColorProp = serializedObject.FindProperty("ManuallySetTierColor");
 

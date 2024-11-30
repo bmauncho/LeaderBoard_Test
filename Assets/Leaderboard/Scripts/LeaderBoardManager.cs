@@ -45,7 +45,7 @@ namespace LeaderBoard
         public string playerName;
         public TextAsset UserNamesText;
         private string [] _UserNames;
-        public bool CanUseTiers = false;
+        public bool IsUsingTierLeaderBoard = false;
         public bool ManuallySetTierColor = false;
         [SerializeField]private List<TierInfo> TierInfos = new List<TierInfo>();
 
@@ -106,13 +106,13 @@ namespace LeaderBoard
         public Color GetColorForTier ( Tiers tier_ )
         {
             // Log the provided tier for debugging
-            Debug.Log($"Requested tier: {tier_}");
+            //Debug.Log($"Requested tier: {tier_}");
 
             TierInfo threshold = TierInfos.FirstOrDefault(t => t.tier == tier_);
 
             if (threshold != null)
             {
-                Debug.Log($"Found tier: {threshold.tier}, Color: {threshold.TierColor}");
+                //Debug.Log($"Found tier: {threshold.tier}, Color: {threshold.TierColor}");
                 return threshold.TierColor;
             }
 

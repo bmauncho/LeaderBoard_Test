@@ -15,13 +15,6 @@ namespace LeaderBoard
 
             serializedObject.Update(); // Update the serialized object
 
-            // Conditionally display ActiveTier at the top if CanUseTiers is true
-            if (leaderBoardManager != null && leaderBoardManager.CanUseTiers)
-            {
-                SerializedProperty activeTier = serializedObject.FindProperty("ActiveTier");
-                EditorGUILayout.PropertyField(activeTier);
-            }
-
             SerializedProperty iterator = serializedObject.GetIterator();
             bool enterChildren = true;
 
@@ -50,20 +43,6 @@ namespace LeaderBoard
             {
                 leaderBoard.ArrangeLeaderBoard();
             }
-
-            if (leaderBoardManager != null && leaderBoardManager.CanUseTiers)
-            {
-                if (GUILayout.Button("Increase Tier"))
-                {
-                    leaderBoard.IncreaseTier();
-                }
-
-                if (GUILayout.Button("Lower Tier"))
-                {
-                    leaderBoard.LowerTier();
-                }
-            }
-           
 
             serializedObject.ApplyModifiedProperties(); // Apply changes to the serialized object
         }
