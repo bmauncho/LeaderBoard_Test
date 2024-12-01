@@ -1779,7 +1779,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: WORLD RANK
+  m_text: 'WORLD RANK : ROOKIE'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b1f7fc1bf126a341b98b78b410250fb, type: 2}
   m_sharedMaterial: {fileID: 8151421045844790030, guid: 0b1f7fc1bf126a341b98b78b410250fb,
@@ -1807,7 +1807,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 29.65
+  m_fontSize: 21.95
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -3041,7 +3041,7 @@ RectTransform:
   m_GameObject: {fileID: 8378179594548880861}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5500049073205347395}

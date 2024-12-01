@@ -159,14 +159,16 @@ namespace LeaderBoard
                 initialized = true;
                 oldRank_ = 100;
             }
-            Debug.Log("Old rank :"+ oldRank_);
-            int newRank = oldRank_ - 5;
-            if (newRank <= 0) newRank += 100; // Wrap-around logic for rank-up
-            Debug.Log("new rank(rankUp): " + newRank);
-            UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
-            Show(oldRank_ , newRank , GetPlayerScore());
-        }
 
+            int newRank = oldRank_ - 20; // Calculate the new rank
+            CheckAndUpdateTier(newRank , () =>
+            {
+                Debug.Log($"Rank updated to: {oldRank_} in tier {ActiveTier}");
+                newRank = oldRank_;
+                UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
+                Show(oldRank_ , newRank , GetPlayerScore());
+            });
+        }
 
         public void RankDown ()
         {
@@ -176,24 +178,16 @@ namespace LeaderBoard
                 initialized = true;
                 oldRank_ = 100;
             }
-            int newRank = oldRank_ + 5;
-            if (newRank > 100)
+
+            int newRank = oldRank_ + 20; // Calculate the new rank
+            CheckAndUpdateTier(newRank , () =>
             {
-                if(ActiveTier != Tiers.ROOKIE)
-                {
-                    newRank -= 100;
-                }
-                else
-                {
-                    newRank = 100;
-                }
-            } 
-            Debug.Log("new rank(rankDown): " + newRank);
-            UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
-            Show(oldRank_ , newRank , GetPlayerScore());
+                newRank = oldRank_;
+                Debug.Log($"Rank updated to: {oldRank_} in tier {ActiveTier}");
+                UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
+                Show(oldRank_ , newRank , GetPlayerScore());
+            });
         }
-
-
 
         public void Show ( int oldRank , int newRank , float newScore )
         {
@@ -219,6 +213,7 @@ namespace LeaderBoard
             else if (newRank <= 1 && ActiveTier == Tiers.IMMORTAL)
             {
                 index = 0;
+                place = newRank;
             }
 
             for (int i = 0 ; i < LeaderboardEntries.Count ; i++)
@@ -271,8 +266,6 @@ namespace LeaderBoard
         {
             return 2;
         }
-
-
 
         private void HighlightPlayer ( ItemData itemData )
         {
@@ -374,18 +367,47 @@ namespace LeaderBoard
             return Mathf.Clamp01(normalizedY);
         }
 
-        public void UpdateTierAndRank ()
+        private void CheckAndUpdateTier ( int newRank , Action OnComplete = null )
         {
-            if (oldRank_ <= 1)
+            if (newRank <= 1) // Check if rank is top
             {
-                IncreaseTier();
+                if (ActiveTier == Tiers.IMMORTAL)
+                {
+                    oldRank_ = 1;
+                }
+                else
+                {
+                    int excessRank = 1 - newRank; // Calculate overflow to the next tier
 
+                    IncreaseTier(); // Move to the next tier
+
+                    // Set the new rank in the higher tier
+                    oldRank_ = 100 - excessRank + 1;
+                    Debug.Log($"Moved to {ActiveTier} at rank {oldRank_}.");
+                }
             }
-            else if(oldRank_ >=100) 
+            else if (newRank > 100) // Check if rank is lowest
             {
-                LowerTier();
+                if(ActiveTier == Tiers.ROOKIE)
+                {
+                    oldRank_ = 100;
+                }
+                else
+                {
+                    int excessRank = newRank - 100; // Calculate underflow to the previous tier
+                    LowerTier(); // Move to the previous tier
+                                 // Set the new rank in the lower tier
+                    oldRank_ = 1 + excessRank - 1;
+                    Debug.Log($"Moved to {ActiveTier} at rank {oldRank_}.");
+                }
+               
             }
-
+            else
+            {
+                oldRank_ = newRank; // Stay in the same tier with updated rank
+            }
+            OnComplete?.Invoke();
         }
+
     }
 }
