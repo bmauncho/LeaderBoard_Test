@@ -25,7 +25,17 @@ namespace leaderboard
                 tierLeaderBoard.HideLeaderBoard();
             }
 
-            if(GUILayout.Button("Increase Tier"))
+            if (GUILayout.Button("RankUp"))
+            {
+                tierLeaderBoard.RankUp();
+            }
+
+            if (GUILayout.Button("RankDown"))
+            {
+                tierLeaderBoard.RankDown();
+            }
+
+            if (GUILayout.Button("Increase Tier"))
             {
                 tierLeaderBoard.IncreaseTier();
             }
@@ -35,24 +45,9 @@ namespace leaderboard
                 tierLeaderBoard.LowerTier();
             }
 
-            if (GUILayout.Button("RankUp"))
-            {
-                tierLeaderBoard.rankUp();
-            }
-
-            if (GUILayout.Button("RankDown"))
-            {
-                tierLeaderBoard.RankDown();
-            }
-
             if (GUILayout.Button("Arrange Leaderboard"))
             {
                 tierLeaderBoard.ArrangeLeaderBoard();
-            }
-
-            if (GUILayout.Button("Update Tier LeaderBoard"))
-            {
-                tierLeaderBoard.UpdateTierLeaderBoard();
             }
         }
     }

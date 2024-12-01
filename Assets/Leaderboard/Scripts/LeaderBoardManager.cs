@@ -120,12 +120,6 @@ namespace LeaderBoard
             return Color.white; // Default color
         }
 
-
-        public List<TierInfo> GetTierThresholds ()
-        {
-            return TierInfos;
-        }
-
         public Color SetColorforTier ( Tiers tiers )
         {
             // Define hex codes for each tier

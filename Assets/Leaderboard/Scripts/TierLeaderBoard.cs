@@ -33,8 +33,8 @@ namespace LeaderBoard
         public Color RankDownColor;
         public GameObject playerItemContainer;
         public List<ItemData> LeaderboardEntries = new List<ItemData>();
-        Dictionary<string,Dictionary<int,float>> playerDetails = new Dictionary<string,Dictionary<int,float>>();
         int oldRank_ = 0;
+        bool initialized = false;
        // Start is called before the first frame update
         void Start ()
         {
@@ -56,6 +56,11 @@ namespace LeaderBoard
             scrollRect.verticalNormalizedPosition = 0.5f;
         }
 
+        public playerInfo CreatePlayerInfo ()
+        {
+            return data.CreatePlayerInfo();
+        }
+
         public void ArrangeLeaderBoard ()
         {
             float entryTemplateHeight = 75f;
@@ -68,10 +73,10 @@ namespace LeaderBoard
 
         public void ShowLeaderBoard ()
         {
-            ResetLeaderBoard();
             TheLeaderBoard.SetActive(true);
             TheLeaderBoard.transform.localScale = Vector3.one;
             SetLeaderBoardTitle();
+            UpdateTierLeaderBoard();
         }
 
         public void HideLeaderBoard ()
@@ -134,71 +139,117 @@ namespace LeaderBoard
 
         public void UpdateTierLeaderBoard ()
         {
-            ShowLeaderBoard();
             UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
-            Show(GetRandomOldRank(),(100 - GetRandomOldRank()),GetPlayerScore());
+            int ranking = Random.Range(0 , 2);
+            if(ranking <=1)
+            {
+                RankUp();
+            }
+            else
+            {
+                RankDown();
+            }
         }
 
-        public void rankUp ()
+        public void RankUp ()
         {
-            int newRank = oldRank_ - 20;
-            Debug.Log("Rank up position: " + newRank);
-            if (newRank <= 1)
+            ResetLeaderBoard();
+            if (!initialized)
             {
-                newRank = 1;
+                initialized = true;
+                oldRank_ = 100;
             }
+            Debug.Log("Old rank :"+ oldRank_);
+            int newRank = oldRank_ - 5;
+            if (newRank <= 0) newRank += 100; // Wrap-around logic for rank-up
+            Debug.Log("new rank(rankUp): " + newRank);
             UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
             Show(oldRank_ , newRank , GetPlayerScore());
-            
         }
+
 
         public void RankDown ()
         {
-            int newRank = oldRank_ + 20;
-            Debug.Log("Rank down position: "+newRank);
-            if (newRank >= 100)
+            ResetLeaderBoard();
+            if (!initialized)
             {
-                newRank = 100;
+                initialized = true;
+                oldRank_ = 100;
             }
+            int newRank = oldRank_ + 5;
+            if (newRank > 100)
+            {
+                if(ActiveTier != Tiers.ROOKIE)
+                {
+                    newRank -= 100;
+                }
+                else
+                {
+                    newRank = 100;
+                }
+            } 
+            Debug.Log("new rank(rankDown): " + newRank);
             UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
             Show(oldRank_ , newRank , GetPlayerScore());
         }
 
 
-        public void Show(int oldRank, int newRank, float newScore )
+
+        public void Show ( int oldRank , int newRank , float newScore )
         {
-            bool isUp = IsUp(oldRank, newRank);
+            bool isUp = IsUp(oldRank , newRank);
             var rankChangeSprite = GetRankChangeSprite(isUp);
             var rankChangeColor = GetRankChangeColor(isUp);
 
-            var playerInfo = data.CreatePlayerInfo();
+            int index = DetermineIndex(newRank);
 
-            var index = DetermineIndex(newRank);
-            if (!isUp)
+            // Ensure index is within bounds of the LeaderboardEntries list
+            if (index < 0 || index >= LeaderboardEntries.Count)
             {
-                index = LeaderboardEntries.Count - 3;
+                Debug.LogWarning($"Index out of range: {index}. Adjusting to valid range.");
+                index = 2;
+            }
+            int place = newRank-2;
+
+            if (newRank >= 100 && ActiveTier == Tiers.ROOKIE)
+            {
+                index = LeaderboardEntries.Count - 1;
+                place = newRank - (LeaderboardEntries.Count-1);
+            }
+            else if (newRank <= 1 && ActiveTier == Tiers.IMMORTAL)
+            {
+                index = 0;
             }
 
-            var place = newRank - index;
-            for( int i = 0;i<LeaderboardEntries.Count;i++ )
+            for (int i = 0 ; i < LeaderboardEntries.Count ; i++)
             {
-                LeaderboardEntries [i].SetUpPlayers(playerInfo.UserName , place , newScore);
+                LeaderboardEntries [i].InitializePlayer(CreatePlayerInfo() , place , newScore);
                 place++;
+
+                if (place > 100)
+                {
+                    if (ActiveTier != Tiers.ROOKIE)
+                    {
+                        place = 1;
+                    }
+                }
             }
-
-
 
             playerInfo ActivePlayerInfo = new playerInfo
             {
                 UserName = data.playerName ,
             };
 
-            var targetPlayerItem = special_item = LeaderboardEntries [index];
-            oldRank_ = LeaderboardEntries [index].PositionCounter_.CurrentPosition;
-            targetPlayerItem.SetUpPlayers(ActivePlayerInfo.UserName , LeaderboardEntries [index].PositionCounter_.CurrentPosition , newScore);
-            HighlightPlayer(targetPlayerItem);
-            float TargetPos = GetNormalizedScrollPosition(targetPlayerItem.GetComponent<RectTransform>());
-            StartCoroutine(ScrollToRank(TargetPos , 1f));
+            var targetPlayerItem = LeaderboardEntries [index];
+            if (targetPlayerItem != null)
+            {
+                oldRank_ = targetPlayerItem.PositionCounter_.CurrentPosition;
+                targetPlayerItem.SetUpPlayers(ActivePlayerInfo.UserName , oldRank_ , newScore);
+                HighlightPlayer(targetPlayerItem);
+
+                float targetPos = GetNormalizedScrollPosition(targetPlayerItem.GetComponent<RectTransform>());
+                StartCoroutine(ScrollToRank(targetPos , 1f));
+            }
         }
 
         bool IsUp ( int oldRankPosition , int newRankPosition )
@@ -218,8 +269,10 @@ namespace LeaderBoard
 
         private int DetermineIndex ( int newRankPosition )
         {
-            return newRankPosition < 3 ? newRankPosition - 1 : 2;
+            return 2;
         }
+
+
 
         private void HighlightPlayer ( ItemData itemData )
         {
@@ -251,11 +304,6 @@ namespace LeaderBoard
         int GetPlayerScore ()
         {
             return Random.Range(5 , 100);
-        }
-
-        int GetRandomOldRank ()
-        {
-            return Random.Range(1 , 100);
         }
 
         public void UpdateContentHeight ( RectTransform contentContainer , float itemHeight , float spacing , float padding )
