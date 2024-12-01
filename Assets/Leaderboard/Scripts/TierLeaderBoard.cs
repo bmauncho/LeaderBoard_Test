@@ -179,6 +179,10 @@ namespace LeaderBoard
                 oldRank_ = 100;
             }
 
+            if(ActiveTier == Tiers.IMMORTAL && oldRank_ == 1)
+            {
+                oldRank_ = 0;
+            }
             int newRank = oldRank_ + 20; // Calculate the new rank
             CheckAndUpdateTier(newRank , () =>
             {
