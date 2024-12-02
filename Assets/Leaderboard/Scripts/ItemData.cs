@@ -12,8 +12,38 @@ namespace LeaderBoard
         [SerializeField] private Image icon;
         public TMP_Text UserName;
         public PositionCounter PositionCounter_;
+        public GameObject ranking;
         public Image [] EditableImages;
         public Color [] EditableImagesOriginalColors;
+        public bool IsUsingIcon = false;
+
+        private void Update ()
+        {
+            if (IsUsingIcon)
+            {
+                if (ranking)
+                {
+                    ranking.SetActive(true);
+                }
+            }
+            else
+            {
+                if (ranking)
+                {
+                    ranking.SetActive(false);
+                }
+            }
+        }
+
+        public void SetIconColor (Color color)
+        {
+            icon.color = color;
+        }
+
+        public void SetIcon (Sprite sprite)
+        {
+            icon.sprite = sprite;
+        }
 
         public void SetRank(int rank )
         {
@@ -28,13 +58,22 @@ namespace LeaderBoard
         public void SetPlayerInfo(playerInfo playerInfo )
         {
             UserName.text = playerInfo.UserName;
+            if (icon != null)
+            {
+                icon.sprite = playerInfo.Country;
+            }
         }
 
         public void SetPlayerInfo_Text(string playerOption )
         {
             UserName.text=playerOption;
         }
-
+        /// <summary>
+        /// initialize fake players  with score
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="rank"></param>
+        /// <param name="score"></param>
         public void InitializePlayer(playerInfo info,int rank,float score )
         {
             SetPlayerInfo( info );
@@ -42,6 +81,17 @@ namespace LeaderBoard
             SetScore(score);
         }
 
+        /// <summary>
+        /// Intitialize fake players with out score
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="rank"></param>
+        public void InitializePlayers ( playerInfo info , int rank )
+        {
+            SetPlayerInfo(info);
+            SetRank(rank);
+
+        }
         public void SetUpPlayers(string playerName,int rank,float score)
         {
             SetPlayerInfo_Text(playerName);

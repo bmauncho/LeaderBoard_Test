@@ -45,10 +45,17 @@ namespace leaderboard
                 tierLeaderBoard.LowerTier();
             }
 
+            if (GUILayout.Button("UpdateLeaderboard"))
+            {
+                tierLeaderBoard.UpdateTierLeaderBoard();
+            }
+
             if (GUILayout.Button("Arrange Leaderboard"))
             {
                 tierLeaderBoard.ArrangeLeaderBoard();
             }
+
+           
         }
     }
 }

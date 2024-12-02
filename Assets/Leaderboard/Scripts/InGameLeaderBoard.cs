@@ -18,6 +18,13 @@ namespace Leaderboard
         ItemData special_item;
         public GameObject LeaderBoard;
         public GameObject playerItem;
+        public GameObject LeaderBoardContainer;
+        public RectTransform ContentContainer_;
+
+        public int playersCount = 0;
+        private int previousPlayerCount = 0; // Track the previous player count
+
+        [Header("ItemData List")]
         public List<ItemData> LeaderboardEntries = new List<ItemData>();
         Dictionary<string , Dictionary<int , float>> playerDetails = new Dictionary<string ,Dictionary<int , float>>();
 
@@ -25,10 +32,7 @@ namespace Leaderboard
         void Start ()
         {
             data = FindObjectOfType<LeaderBoardManager>(true);
-            FetchPlayersInfo(() =>
-            {
-                UpdateThePlayersInfo();
-            });
+            RefreshLeaderboard();
         }
 
         public void ArrangeLeaderBoard ()
@@ -56,6 +60,7 @@ namespace Leaderboard
         {
             LeaderBoard.SetActive(true);
             LeaderBoard.transform.localScale = Vector3.one;
+            UpdateTheLeaderBoard();
         }
 
         public void HideLeaderBoard ()
@@ -64,15 +69,9 @@ namespace Leaderboard
             LeaderBoard.transform.localScale = Vector3.zero;
         }
 
-        public IEnumerator InitializeLeaderBoard ()
+        private int GetPlayerCount ()
         {
-           
-            yield return null;
-        }
-
-        private float GetPlayerCount ()
-        {
-            return 20;
+            return playersCount;
         }
 
         private float GetPlayerScore ()
@@ -80,12 +79,66 @@ namespace Leaderboard
             return Random.Range(5 , 100);
         }
 
+
+
+        public void RefreshLeaderboard ()
+        {
+            int currentPlayerCount = GetPlayerCount();
+
+            // Clear the dictionary if the player count has changed
+            if (currentPlayerCount != previousPlayerCount)
+            {
+                playerDetails.Clear();
+                previousPlayerCount = currentPlayerCount;
+                Debug.Log("Player count has changed. Cleared playerDetails dictionary.");
+            }
+
+            foreach (ItemData itemData in LeaderboardEntries)
+            {
+                if (!itemData.gameObject.activeSelf)
+                {
+                    itemData.gameObject.SetActive(true);
+                }
+                itemData.ResetColors();
+                itemData.ResetItemData();
+            }
+
+            // Adjust LeaderboardEntries list size if necessary
+            if (LeaderboardEntries.Count > currentPlayerCount)
+            {
+                for (int i = currentPlayerCount ; i < LeaderBoardContainer.transform.childCount ; i++)
+                {
+                    LeaderBoardContainer.transform.GetChild(i).gameObject.SetActive(false);
+                }
+            }
+
+            if (currentPlayerCount > 3)
+            {
+                playerItem.SetActive(true);
+            }
+            else if (currentPlayerCount <= 2)
+            {
+                playerItem.SetActive(false);
+            }
+
+            FetchPlayersInfo(UpdateThePlayersInfo);
+        }
+
+
+
         private void FetchPlayersInfo (Action Oncomplete = null)
         {
             // Clear playerDetails to avoid duplicates
             playerDetails.Clear();
             bool hasActivePlayer = false;
-            for (int i = 0 ; i < GetPlayerCount() ; i++)
+
+            if(playersCount < 2)
+            {
+                Debug.LogError("Players count cannot be below 2");
+                return;
+            }
+
+            if(playersCount == 2)
             {
                 // Create a new rank-score dictionary for each player
                 Dictionary<int , float> rankScore = new Dictionary<int , float>
@@ -115,6 +168,40 @@ namespace Leaderboard
                     }
                 }
             }
+            else
+            {
+                for (int i = 0 ; i < GetPlayerCount() ; i++)
+                {
+                    // Create a new rank-score dictionary for each player
+                    Dictionary<int , float> rankScore = new Dictionary<int , float>
+                    {
+                        { 0, 0 } // Initialize with Rank 0 and Score 0
+                    };
+
+                    // Create a unique player info
+                    playerInfo newplayer = CreatePlayerInfo();
+
+
+                    if (!playerDetails.ContainsKey(newplayer.UserName))
+                    {
+                        playerDetails.Add(newplayer.UserName , rankScore);
+                        if (!hasActivePlayer)
+                        {
+                            hasActivePlayer = true;
+                            playerInfo ActivePlayer = new playerInfo
+                            {
+                                UserName = data.playerName ,
+                            };
+
+                            if (!playerDetails.ContainsKey(ActivePlayer.UserName))
+                            {
+                                playerDetails.Add(ActivePlayer.UserName , rankScore);
+                            }
+                        }
+                    }
+                }
+            }
+            
             playerDetails = playerDetails.OrderBy(entry => entry.Key).ToDictionary(entry => entry.Key , entry => entry.Value);
 
             // Adding the rank
@@ -148,11 +235,17 @@ namespace Leaderboard
             var playerKeys = playerDetails.Keys.ToList();
             var playerValues = playerDetails.Values.ToList();
 
-            for (int i = 0 ; i < LeaderboardEntries.Count ; i++)
+            for (int i = 0 ; i < Mathf.Min(LeaderboardEntries.Count , playerValues.Count) ; i++)
             {
-                var innerDictionary = playerValues [i]; // Inner dictionary for this player
+                if (i >= playerValues.Count && LeaderboardEntries [i].gameObject.activeInHierarchy)
+                {
+                    Debug.LogWarning($"Index {i} out of range for playerValues.");
+                    continue;
+                }
 
-                // Assuming the first entry in the inner dictionary is rank and score
+                var innerDictionary = playerValues [i]; // Inner dictionary for this player
+                
+                    // Assuming the first entry in the inner dictionary is rank and score
                 int rank = innerDictionary.Keys.First();   // First key is rank
                 float score = innerDictionary.Values.First(); // Corresponding value is score
 
@@ -173,6 +266,7 @@ namespace Leaderboard
 
         public void UpdateTheLeaderBoard ()
         {
+            RefreshLeaderboard();
             var playerKeys = playerDetails.Keys.ToList();
 
             for(int i = 0 ;i< playerKeys.Count ;i++)
@@ -218,12 +312,15 @@ namespace Leaderboard
             // Update the leaderboard UI
             for (int i = 0 ; i < LeaderboardEntries.Count ; i++)
             {
-                var playerName = playerDetails.ElementAt(i).Key;
-                var rankScore = playerDetails [playerName];
-                int updatedRank = rankScore.Keys.First();
-                float updatedScore = rankScore.Values.First();
+                if (LeaderboardEntries [i].gameObject.activeInHierarchy)
+                {
+                    var playerName = playerDetails.ElementAt(i).Key;
+                    var rankScore = playerDetails [playerName];
+                    int updatedRank = rankScore.Keys.First();
+                    float updatedScore = rankScore.Values.First();
 
-                LeaderboardEntries [i].SetUpPlayers(playerName , updatedRank , updatedScore);
+                    LeaderboardEntries [i].SetUpPlayers(playerName , updatedRank , updatedScore);
+                }
             }
 
             // Update the player item for the active player

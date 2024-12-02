@@ -35,6 +35,8 @@ namespace LeaderBoard
         public List<ItemData> LeaderboardEntries = new List<ItemData>();
         int oldRank_ = 0;
         bool initialized = false;
+        bool IsRankUp = false;
+
        // Start is called before the first frame update
         void Start ()
         {
@@ -70,13 +72,21 @@ namespace LeaderBoard
                 entryTransform.anchoredPosition = new Vector2(0 , -entryTemplateHeight * i);
             }
         }
+        void SetUp ()
+        {
+            for (int i = 0 ; i < LeaderboardEntries.Count ; i++)
+            {
+                LeaderboardEntries [i].IsUsingIcon = true;
+            }
+        }
 
         public void ShowLeaderBoard ()
         {
             TheLeaderBoard.SetActive(true);
             TheLeaderBoard.transform.localScale = Vector3.one;
             SetLeaderBoardTitle();
-            UpdateTierLeaderBoard();
+            SetUp();
+            FetchData();
         }
 
         public void HideLeaderBoard ()
@@ -137,11 +147,27 @@ namespace LeaderBoard
             SetLeaderBoardTitle();
         }
 
+        public void FetchData ()
+        {
+            UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
+            if (!initialized)
+            {
+                initialized = true;
+                oldRank_ = 100;
+            }
+            CheckAndUpdateTier(oldRank_ , () =>
+            {
+                Debug.Log($"Rank updated to: {oldRank_} in tier {ActiveTier}");
+                UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
+                Show(oldRank_ , oldRank_ , GetPlayerScore());
+            });
+        }
+
         public void UpdateTierLeaderBoard ()
         {
             UpdateContentHeight(ContentContainer_ , 75f , 0 , 0);
             int ranking = Random.Range(0 , 2);
-            if(ranking <=1)
+            if (ranking <= 1)
             {
                 RankUp();
             }
@@ -153,6 +179,7 @@ namespace LeaderBoard
 
         public void RankUp ()
         {
+            IsRankUp = true;
             ResetLeaderBoard();
             if (!initialized)
             {
@@ -172,6 +199,7 @@ namespace LeaderBoard
 
         public void RankDown ()
         {
+            IsRankUp = false;
             ResetLeaderBoard();
             if (!initialized)
             {
@@ -183,6 +211,7 @@ namespace LeaderBoard
             {
                 oldRank_ = 0;
             }
+             
             int newRank = oldRank_ + 20; // Calculate the new rank
             CheckAndUpdateTier(newRank , () =>
             {
@@ -193,9 +222,9 @@ namespace LeaderBoard
             });
         }
 
-        public void Show ( int oldRank , int newRank , float newScore )
+        public void Show (int oldRank , int newRank , float newScore )
         {
-            bool isUp = IsUp(oldRank , newRank);
+            bool isUp = IsRankUp;
             var rankChangeSprite = GetRankChangeSprite(isUp);
             var rankChangeColor = GetRankChangeColor(isUp);
 
@@ -222,7 +251,7 @@ namespace LeaderBoard
 
             for (int i = 0 ; i < LeaderboardEntries.Count ; i++)
             {
-                LeaderboardEntries [i].InitializePlayer(CreatePlayerInfo() , place , newScore);
+                LeaderboardEntries [i].InitializePlayers(CreatePlayerInfo() , place);
                 place++;
 
                 if (place > 100)
@@ -243,17 +272,14 @@ namespace LeaderBoard
             if (targetPlayerItem != null)
             {
                 oldRank_ = targetPlayerItem.PositionCounter_.CurrentPosition;
-                targetPlayerItem.SetUpPlayers(ActivePlayerInfo.UserName , oldRank_ , newScore);
+                targetPlayerItem.InitializePlayers(ActivePlayerInfo , oldRank_);
                 HighlightPlayer(targetPlayerItem);
+                targetPlayerItem.SetIcon(rankChangeSprite);
+                targetPlayerItem.SetIconColor(rankChangeColor);
 
                 float targetPos = GetNormalizedScrollPosition(targetPlayerItem.GetComponent<RectTransform>());
                 StartCoroutine(ScrollToRank(targetPos , 1f));
             }
-        }
-
-        bool IsUp ( int oldRankPosition , int newRankPosition )
-        {
-            return newRankPosition <= oldRankPosition;
         }
 
         private Sprite GetRankChangeSprite ( bool isUp )

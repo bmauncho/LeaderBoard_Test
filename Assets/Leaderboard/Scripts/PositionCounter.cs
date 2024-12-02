@@ -28,7 +28,10 @@ namespace LeaderBoard
         public void SetScore ( float score )
         {
             Score = score;
-            ScoreLabel.text = Score.ToString();
+            if (ScoreLabel != null)
+            {
+                ScoreLabel.text = Score.ToString();
+            }
         }
 
         private void SetUpRankVisual ( int rank )
@@ -36,7 +39,7 @@ namespace LeaderBoard
             switch (rank)
             {
                 default:
-                    PositionLabel.text = rank.ToString() + " TH";
+                    PositionLabel.text = "#"+ rank.ToString() ;
                     break;
                 case 1:
                     PositionLabel.text = rank.ToString() + " ST";

@@ -11,8 +11,9 @@ namespace LeaderBoard
     [System.Serializable]
     public class playerInfo
     {
-        public string UserName;
         public int Rank;
+        public string UserName;
+        public Sprite Country;
         public int Score;
     }
 
@@ -45,9 +46,11 @@ namespace LeaderBoard
         public string playerName;
         public TextAsset UserNamesText;
         private string [] _UserNames;
+        [SerializeField] private List<Sprite> countries;
         public bool IsUsingTierLeaderBoard = false;
         public bool ManuallySetTierColor = false;
         [SerializeField]private List<TierInfo> TierInfos = new List<TierInfo>();
+        
 
         public playerInfo CreatePlayerInfo ()
         {
@@ -58,6 +61,7 @@ namespace LeaderBoard
             return new playerInfo()
             {
                 UserName = _UserNames [Random.Range(0 , _UserNames.Length)] ,
+                Country = countries [Random.Range(0 , countries.Count)]
             };
         }
 

@@ -25,8 +25,9 @@ namespace LeaderBoard
         public RectTransform ContentContainer_;
         public ScrollRect scrollRect;
         public GameObject playerItem;
+        public GameObject itemtemplate;
         public List<ItemData> LeaderboardEntries = new List<ItemData>();
-
+        public int playersCount = 0;
         // Start is called before the first frame update
         void Start ()
         {
@@ -61,8 +62,17 @@ namespace LeaderBoard
         {
             TheLeaderBoard.SetActive(true);
             TheLeaderBoard.transform.localScale = Vector3.one;
+            SetUp();
             SetLeaderBoardTitle();
             StartCoroutine(InitializelocalLeaderBoard());
+        }
+
+        void SetUp ()
+        {
+            for (int i = 0;i<LeaderboardEntries.Count;i++)
+            {
+                LeaderboardEntries [i].IsUsingIcon = false;
+            }
         }
 
         public void HideLeaderBoard ()
@@ -70,6 +80,7 @@ namespace LeaderBoard
             TheLeaderBoard.SetActive(false);
             TheLeaderBoard.transform.localScale = Vector3.zero;
         }
+
         #endregion
 
         /// <summary>
@@ -177,7 +188,7 @@ namespace LeaderBoard
 
         private int GetPlayerCount ()
         {
-            return Random.Range(10 , 20);
+            return playersCount ;
         }
 
         int GetPlayerScore ()
@@ -209,6 +220,16 @@ namespace LeaderBoard
                     Transform child = LeaderBoardContainer.transform.GetChild(i);
                     child.gameObject.SetActive(false);
                 }
+            }
+            else
+            {
+                int Items = playerCount - LeaderboardEntries.Count; 
+                for (int i = 0 ;i<Items ; i++)
+                {
+                    ItemData Item_ = Instantiate(itemtemplate.GetComponent<ItemData>(), LeaderBoardContainer.transform);
+                    LeaderboardEntries.Add(Item_);
+                }
+                ArrangeLeaderBoard();
             }
             yield return null;
         }
