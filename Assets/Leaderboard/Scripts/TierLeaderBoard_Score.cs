@@ -38,7 +38,8 @@ namespace Leaderboard
         Dictionary<string,Dictionary<int,float>> playerDetails = new Dictionary<string,Dictionary<int,float>>();
         int oldRank_ = 0;
         bool IsRankUp = false;
-        public float prevScore = 0;    
+        public float prevScore = 0;
+        bool initialized = false;
 
         // Start is called before the first frame update
         void Start ()
@@ -91,7 +92,18 @@ namespace Leaderboard
             SetLeaderBoardTitle();
             SetUp();
             RefreshLeaderBoard();
-            UpdateTierUI(0);
+            if (!initialized)
+            {
+                initialized = true;
+                float storedScore = 0;
+                if (ActiveTier > 0)
+                {
+                    storedScore = data.MaximumScoreByTier(ActiveTier - 1);
+                }
+
+                prevScore = storedScore;
+            }
+            UpdateTierUI(prevScore);
         }
 
         public void HideLeaderBoard ()
@@ -128,7 +140,6 @@ namespace Leaderboard
         public void IncreaseTier ()
         {
             ActiveTier++;
-
             Array tiersArray = System.Enum.GetValues(typeof(Tiers));
             int enumLength = tiersArray.Length;
 
@@ -158,21 +169,28 @@ namespace Leaderboard
             ResetLeaderBoard();
 
             float newScore = prevScore + 40;
-            Debug.Log($"The previous score was : {prevScore}");
-            UpdateTierUI(newScore);
+           // Debug.Log($"The previous score was : {prevScore}");
+            CheckAndUpdateTier(newScore , () =>
+            {
+                UpdateTierUI(newScore);
+            });
+            
         }
 
         public void RankDown ()
         {
             IsRankUp = false;
             ResetLeaderBoard();
-            Debug.Log($"The previous score was : {prevScore}");
+           // Debug.Log($"The previous score was : {prevScore}");
             float newScore = prevScore - 20;
             if(newScore<=0)
             {
                 newScore = 0;
             }
-            UpdateTierUI(newScore);
+            CheckAndUpdateTier(newScore , () =>
+            {
+                UpdateTierUI(newScore);
+            });
         }
 
         public void RefreshLeaderBoard ()
@@ -254,7 +272,7 @@ namespace Leaderboard
                 int currentRank = innerDictionary.Keys.First();   // First key is rank
                 float score = innerDictionary.Values.First(); // Corresponding value is score
 
-                var newScore = Random.Range(5,data.MaximumScoreByTier(ActiveTier));
+                float newScore = GetNewScore();
 
                 playerDetails [playerKeys [i]] = new Dictionary<int , float>
                 {
@@ -281,15 +299,38 @@ namespace Leaderboard
                 rank++;
             }
 
-            // Output the sorted list
-            foreach (var entry in playerDetails)
-            {
-                int playerRank = entry.Value.Keys.First();
-                float Score = entry.Value.Values.First();
+            // Output the sorted list: Debugging
+            //foreach (var entry in playerDetails)
+            //{
+            //    int playerRank = entry.Value.Keys.First();
+            //    float Score = entry.Value.Values.First();
 
-                Debug.Log($"Name: {entry.Key}, Rank: {playerRank}, Score: {Score}");
-            }
+            //    Debug.Log($"Name: {entry.Key}, Rank: {playerRank}, Score: {Score}");
+            //}
         }
+
+        public float GetNewScore ()
+        {
+            float newScore = 0;
+
+            // Get all possible tiers as an array
+            Array Tiers = System.Enum.GetValues(typeof(Tiers));
+            int enumLength = Tiers.Length;
+
+            // Check if the current tier has increased compared to the previous tier
+            if (ActiveTier > 0)
+            {
+                newScore = Random.Range(data.MaximumScoreByTier(ActiveTier) , data.MaximumScoreByTier(ActiveTier - 1));
+            }
+            else
+            {
+                // If no tier lower than the current tier, assign a score within the first tier
+                newScore = Random.Range(5 , data.MaximumScoreByTier(ActiveTier));
+            }
+
+            return newScore;
+        }
+
 
         public void UpdateTierUI ( float playerScore )
         {
@@ -319,26 +360,56 @@ namespace Leaderboard
 
             if (newRankIndex >= playerDetails.Count-1 && ActiveTier == Tiers.ROOKIE)
             {
+                Debug.Log(1);
                 index = LeaderboardEntries.Count - 1;
                 placeIndex = newRankIndex - ( LeaderboardEntries.Count - 1 );
+                Debug.Log(1.1);
             }
             else if (newRankIndex <= 1 && ActiveTier == Tiers.IMMORTAL)
             {
+                Debug.Log(2);
                 index = 0;
                 placeIndex = newRankIndex;
+                Debug.Log(2.1);
             }
             else
             {
-                placeIndex = newRankIndex - 10;
+                Debug.Log(3);
+                if (isUp)
+                {
+                    placeIndex = newRankIndex - 5;
+                }
+                else
+                {
+                    placeIndex = newRankIndex -15;
+                }
+                
                 if( placeIndex <= 0 )
                 {
-                    placeIndex = 0;
-                    index = 0;
+                    if (!isUp)
+                    {
+                        placeIndex = 0;
+
+                        index = newRankIndex;
+
+                        //optional: precaution
+                        if (index > LeaderboardEntries.Count - 1)
+                        {
+                            index = LeaderboardEntries.Count - 1;
+                        }
+                    }
+                    else
+                    {
+                        placeIndex = 0;
+                        index = 0;
+                    }
+
                 }
+                Debug.Log(3.1);
             }
 
 
-            Debug.Log($"The new rank Index is: {newRankIndex}");
+            Debug.Log($"The new rank Index is: {newRankIndex} + {1} = {newRankIndex+1}");
             Debug.Log($"The place index is: {placeIndex}");
 
             int DisplayIndex = 0;
@@ -353,16 +424,7 @@ namespace Leaderboard
                         float updatedScore = (float)Mathf.Floor(rankScore.Values.First());
                         LeaderboardEntries [DisplayIndex].SetUpPlayers(playerName , CreatePlayerInfo().Country , placeIndex + 1 , updatedScore);
                     }
-                    else
-                    {
-                        float theScore = LeaderboardEntries [i].PositionCounter_.Score - 1;
-                        if (LeaderboardEntries [i].PositionCounter_.Score<=0)
-                        {
-                            theScore = 0;
-                        }
-                        
-                        LeaderboardEntries [DisplayIndex].InitializePlayer(CreatePlayerInfo(), placeIndex + 1 , theScore);
-                    }
+                   
                     placeIndex++;
                     DisplayIndex++;
                     if (placeIndex > 100)
@@ -376,14 +438,34 @@ namespace Leaderboard
             }
 
 
+            if (DisplayIndex < LeaderboardEntries.Count)
+            {
+                int nextPosition = placeIndex + 1; // Start from the next position
+                float previousTierScore = LeaderboardEntries [DisplayIndex].PositionCounter_.Score;
+
+                for (int i = DisplayIndex ; i < LeaderboardEntries.Count ; i++)
+                {
+                    // Decrement score for each subsequent player
+                    previousTierScore -= 1;
+                    if (previousTierScore <= 0)
+                    {
+                        previousTierScore = 0; // Prevent negative scores
+                    }
+
+                    // Initialize the remaining leaderboard entries
+                    LeaderboardEntries [i].InitializePlayer(CreatePlayerInfo() , nextPosition , previousTierScore);
+
+                    nextPosition++; // Increment position for the next entry
+                }
+            }
+
+
 
             playerInfo ActivePlayerInfo = new playerInfo
             {
                 UserName = data.playerName ,
             };
-            Debug.Log($"The index is: {index}");
             var targetPlayerItem = LeaderboardEntries [index];
-            Debug.Log(targetPlayerItem.UserName.text);
             if (targetPlayerItem != null)
             {
                 oldRank_ = targetPlayerItem.PositionCounter_.CurrentPosition;
@@ -529,6 +611,32 @@ namespace Leaderboard
             }
             // Return the clamped normalized Y value
             return Mathf.Clamp01(normalizedY);
+        }
+
+        private void CheckAndUpdateTier ( float newScore , Action OnComplete = null )
+        {
+            if (newScore > data.MaximumScoreByTier(ActiveTier))
+            {
+                IncreaseTier();
+                SetUpTier(() =>
+                {
+                    DisplayTierData(); // Ensures the new tier data is shown
+                    OnComplete?.Invoke();
+                });
+            }
+            else if (ActiveTier > Tiers.ROOKIE && newScore <= data.MaximumScoreByTier(ActiveTier - 1))
+            {
+                LowerTier();
+                SetUpTier(() =>
+                {
+                    DisplayTierData(); // Ensures the new tier data is shown
+                    OnComplete?.Invoke();
+                });
+            }
+            else
+            {
+                OnComplete?.Invoke();
+            }
         }
     }
 }

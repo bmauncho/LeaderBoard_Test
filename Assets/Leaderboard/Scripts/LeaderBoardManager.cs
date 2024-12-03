@@ -50,7 +50,7 @@ namespace LeaderBoard
         public bool IsUsingTierLeaderBoard = false;
         public bool ManuallySetTierColor = false;
         [SerializeField]private List<TierInfo> TierInfos = new List<TierInfo>();
-        
+        float theScore = 200;
 
         public playerInfo CreatePlayerInfo ()
         {
@@ -173,7 +173,7 @@ namespace LeaderBoard
 
         public float MaximumScoreByTier (Tiers tier)
         {
-            float theScore = 200;
+            
             switch(tier)
             {
                 case Tiers.ROOKIE:
@@ -181,25 +181,25 @@ namespace LeaderBoard
                 case Tiers.NOVICE:
                     return theScore + 200;
                 case Tiers.APPRENTICE:
-                    return theScore + 200;
+                    return theScore + ( 200 * 2 );
                 case Tiers.AMATEUR:
-                    return theScore + 200;
+                    return theScore + ( 200 * 3 );
                 case Tiers.BRAWLER:
-                    return theScore + 200;
+                    return theScore + ( 200 * 4 );
                 case Tiers.PRO:
-                    return theScore + 200;
+                    return theScore + ( 200 * 5 );
                 case Tiers.VETERAN:
-                    return theScore + 200;
+                    return theScore + ( 200 * 6 );
                 case Tiers.LEGEND:
-                    return theScore + 200;
+                    return theScore + ( 200 * 7 );
                 case Tiers.HERO:
-                    return theScore + 200;
+                    return theScore + ( 200 * 8 );
                 case Tiers.CHAMPION:
-                    return theScore + 200;
+                    return theScore + ( 200 * 9 );
                 case Tiers.SUPERSTAR:
-                    return theScore + 200;
+                    return theScore + ( 200 * 10 );
                 case Tiers.IMMORTAL:
-                    return theScore + 200;
+                    return theScore + ( 200 * 11 );
                 default:
                     return theScore;
             }

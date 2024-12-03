@@ -6475,7 +6475,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'WORLD RANK : ROOKIE'
+  m_text: 'WORLD RANK : IMMORTAL'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b1f7fc1bf126a341b98b78b410250fb, type: 2}
   m_sharedMaterial: {fileID: 8151421045844790030, guid: 0b1f7fc1bf126a341b98b78b410250fb,
@@ -6503,7 +6503,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 21.95
+  m_fontSize: 19.3
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -6865,6 +6865,7 @@ MonoBehaviour:
   - {fileID: 607021706}
   - {fileID: 1755046165}
   - {fileID: 271027499}
+  prevScore: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
