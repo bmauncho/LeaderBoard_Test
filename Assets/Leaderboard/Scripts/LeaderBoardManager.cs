@@ -171,6 +171,40 @@ namespace LeaderBoard
             return Color.white;
         }
 
+        public float MaximumScoreByTier (Tiers tier)
+        {
+            float theScore = 200;
+            switch(tier)
+            {
+                case Tiers.ROOKIE:
+                    return theScore;
+                case Tiers.NOVICE:
+                    return theScore + 200;
+                case Tiers.APPRENTICE:
+                    return theScore + 200;
+                case Tiers.AMATEUR:
+                    return theScore + 200;
+                case Tiers.BRAWLER:
+                    return theScore + 200;
+                case Tiers.PRO:
+                    return theScore + 200;
+                case Tiers.VETERAN:
+                    return theScore + 200;
+                case Tiers.LEGEND:
+                    return theScore + 200;
+                case Tiers.HERO:
+                    return theScore + 200;
+                case Tiers.CHAMPION:
+                    return theScore + 200;
+                case Tiers.SUPERSTAR:
+                    return theScore + 200;
+                case Tiers.IMMORTAL:
+                    return theScore + 200;
+                default:
+                    return theScore;
+            }
+        }
+
     }
 
     [System.Serializable]

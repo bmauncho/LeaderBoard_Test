@@ -98,6 +98,20 @@ namespace LeaderBoard
             SetRank(rank);
             SetScore(score);
         }
+        /// <summary>
+        /// SetUp fake players  with score and flag
+        /// </summary>
+        /// <param name="playerName"></param>
+        /// <param name="info"></param>
+        /// <param name="rank"></param>
+        /// <param name="score"></param>
+        public void SetUpPlayers ( string playerName ,Sprite flag, int rank , float score )
+        {
+            icon.sprite = flag;
+            SetPlayerInfo_Text(playerName);
+            SetRank(rank);
+            SetScore(score);
+        }
 
         public void ResetColors ()
         {

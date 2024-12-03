@@ -90,7 +90,7 @@ namespace Leaderboard
             {
                 playerDetails.Clear();
                 previousPlayerCount = currentPlayerCount;
-                Debug.Log("Player count has changed. Cleared playerDetails dictionary.");
+                //Debug.Log("Player count has changed. Cleared playerDetails dictionary.");
             }
 
             foreach (ItemData itemData in LeaderboardEntries)
@@ -220,12 +220,12 @@ namespace Leaderboard
             }
 
             //Optional:Debugging
-            foreach (var entry in playerDetails)
-            {
-                int playerRank = entry.Value.Keys.First();
-                float playerScore = entry.Value.Values.First();
-                Debug.Log($"Name: {entry.Key}, Rank: {playerRank}, Score: {playerScore}");
-            }
+            //foreach (var entry in playerDetails)
+            //{
+            //    int playerRank = entry.Value.Keys.First();
+            //    float playerScore = entry.Value.Values.First();
+            //    Debug.Log($"Name: {entry.Key}, Rank: {playerRank}, Score: {playerScore}");
+            //}
 
             Oncomplete?.Invoke();
         }
